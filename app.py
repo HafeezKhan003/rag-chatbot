@@ -7,27 +7,22 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_groq import ChatGroq
 
-# ---------------- LOAD API KEY ----------------
 load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# If running on Streamlit Cloud, use Secrets
 if not GROQ_API_KEY:
     try:
         GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
     except Exception:
-        st.error("❌ GROQ_API_KEY not found.")
+        st.error("GROQ_API_KEY not found.")
         st.stop()
 
-# ---------------- STREAMLIT UI ----------------
-st.set_page_config(page_title="RAG Chatbot", page_icon="🤖")
-st.title("🤖 RAG Chatbot (Groq + FAISS)")
+st.set_page_config(page_title="RAG Chatbot")
+st.title("RAG Chatbot")
 
-# ---------------- EMBEDDINGS ----------------
 embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
-# ---------------- LOAD VECTOR DB ----------------
 db = FAISS.load_local(
     "vectorstore",
     embeddings,
@@ -36,14 +31,12 @@ db = FAISS.load_local(
 
 retriever = db.as_retriever(search_kwargs={"k": 4})
 
-# ---------------- GROQ LLM ----------------
 llm = ChatGroq(
     api_key=GROQ_API_KEY,
     model="llama-3.1-8b-instant",
     temperature=0
 )
 
-# ---------------- RAG FUNCTION ----------------
 def ask_rag(question):
     docs = retriever.invoke(question)
 
@@ -74,7 +67,6 @@ Answer briefly (2–5 sentences):
     response = llm.invoke(prompt)
     return response.content
 
-# ---------------- CHAT UI ----------------
 user_question = st.text_input("Ask a question from your PDF:")
 
 if user_question:
